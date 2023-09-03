@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongodb-backup-job
+  namespace: apps
+spec:
+  template:
+    spec:
+      serviceAccountName: mongodb-backup-sa
+      containers:
+        - name: mongodb-backup
+          image: jfrog-repo/mongodb-backup:v1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_NAME
+              value: "microfunctions"
+            - name: MONGO_SERVICE_NAME
+              value: "mongodb-service"    # MongoDB Service Name    
+            - name: S3_Bucket
+              value: ""                   # S3 Bucket Name
+            - name: MONGODB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: username           # Replace with the actual key in secret
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: password           # Replace with the actual key in your secret
+          volumeMounts:
+            - mountPath: "/mongodump"
+              name: mongodb-backup-volume
+          command: ['sh', '-c', "./backup.sh"]
+      restartPolicy: Never
+      volumes:
+        - name: mongodb-backup-volume
+          persistentVolumeClaim:
+            claimName: mongodb-backup

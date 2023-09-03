@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: mongodb-backup-job
-  namespace: zde-apps
+  namespace: apps
 spec:
   schedule: "0 */1 * * *" #Cron job runs every 1 hours
   startingDeadlineSeconds: 60
@@ -16,7 +16,7 @@ spec:
           serviceAccountName: mongodb-backup-sa
           containers:
             - name: mongodb-backup
-              image: ccoe-jfrog-repo/mongodb-backup:v1
+              image: jfrog-repo/mongodb-backup:v1
               imagePullPolicy: "IfNotPresent"
               env:
                 - name: DB_NAME
