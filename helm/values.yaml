@@ -1,0 +1,162 @@
+global:
+  mongodb:
+    enabled: true
+    namespace: mongodb
+    version: 13.18.5    
+  backupJob:
+    enabled: true
+    namespace: mongodb
+  restoreJob:
+    enabled: false
+    namespace: mongodb
+    restoreFile: ""         # path location of backup in S3 bucket
+
+
+mongodb:
+  ## Global Configs
+  # global:
+  #   imageRegistry: "jfrog.io"
+  #   imagePullSecrets:
+  #     - jfrog-secret
+    
+  # commonLabels: {}
+  # commonAnnotations: {}
+
+  #####################################################################################################
+
+  ## MongoDB Configs
+  image:
+    repository: bitnami/mongodb
+
+  architecture: replicaset
+  useStatefulSet: false
+
+  auth:
+    enabled: true
+    
+    rootUser: mongodb_root
+
+    username: "mongodb_user"
+    database: "mongodb_default"
+
+    existingSecret: "mongodb-secret"
+
+  replicaCount: 3
+
+  nodeSelector: {}
+
+  resources:
+    ## Example:
+    ## limits:
+    ##    cpu: 100m
+    ##    memory: 128Mi
+    ##
+    limits: {}
+    ## Examples:
+    ## requests:
+    ##    cpu: 100m
+    ##    memory: 128Mi
+    ##
+    requests: {}
+
+  containerPorts:
+    mongodb: 27017
+
+
+  ## Arbiter Configs
+  arbiter:
+    enabled: true
+    
+    annotations: {}
+    labels: {}
+    
+    nodeSelector: {}
+    
+    resources:
+      ## Example:
+      ## limits:
+      ##    cpu: 100m
+      ##    memory: 128Mi
+      ##
+      limits: {}
+      ## Examples:
+      ## requests:
+      ##    cpu: 100m
+      ##    memory: 128Mi
+      ##
+      requests: {}
+
+    containerPorts:
+      mongodb: 27017
+
+
+  ## Custom Metrics for MongoDB
+  metrics:
+    enabled: false
+
+    image:
+      #registry: docker.io
+      repository: bitnami/mongodb-exporter
+
+    username: ""
+    password: ""
+
+    resources:
+      ## Example:
+      ## limits:
+      ##    cpu: 100m
+      ##    memory: 128Mi
+      ##
+      limits: {}
+      ## Examples:
+      ## requests:
+      ##    cpu: 100m
+      ##    memory: 128Mi
+      ##
+      requests: {}
+
+    containerPort: 9216
+
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.metrics.service.ports.metrics }}"
+        prometheus.io/path: "/metrics"
+      type: ClusterIP
+
+      ports:
+        metrics: 9216
+
+    serviceMonitor:
+      enabled: false
+      namespace: ""
+      interval: 30s
+      scrapeTimeout: ""
+      relabelings: []
+      metricRelabelings: []
+      labels: {}
+      selector: {}
+      honorLabels: false
+      jobLabel: ""
+    
+    prometheusRule:
+      enabled: false
+      additionalLabels: {}
+      namespace: ""
+      rules: []
+
+
+backupJob:
+  schedule: '"0 */6 * * *"'                                     # backup schedule
+  serviceAccount:
+    name: mongodb-backup-sa
+    annotations: {}                         # service account name for backup cronjob
+  mongoSvcName: "mongodb-headless.mongodb.svc.cluster.local"    # endpoint of MongoDB headless service within cluster
+  image:
+    name: "dbcelm/mongodb-backup"                               # backup job image name
+    tag: "v0.0.1" 
+  s3Bucket: "s3-mongodb-backup"                                 # backup S3 Bucket
+
+
+restoreJob:
+  connectionString: "mongodb-0.mongodb-headless.mongodb.svc.cluster.local" # endpoint of MongoDB headless service with master node within cluster 

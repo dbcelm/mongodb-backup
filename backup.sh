@@ -1,21 +1,28 @@
 #!/bin/bash
 
-echo ******************************************************
-echo Starting Mongo Backup
-echo ******************************************************
+echo "----------------------------------------------------"
+echo "Starting MongoDB Backup"
+echo "----------------------------------------------------"
+
 TIMESTAMP="$(date +"%F")-$(date +"%T")"
 
 FILE="$DB_NAME-$TIMESTAMP"
-MONGODB_URI="mongodb://$MONGODB_USERNAME:$MONGODB_PASSWORD@$MONGO_SERVICE_NAME:27017/$DB_NAME"
+MONGODB_URI="mongodb://$MONGODB_USERNAME:$MONGODB_PASSWORD@$MONGO_SERVICE_NAME:27017"
 
-mongodump --uri=$MONGODB_URI  --out=/mongodump/db/$FILE
+# Mount S3 Endpoint
+mkdir -p mongodump
 
-sleep 30 | echo Backup-Complete
+mount-s3 $S3_Bucket "mongodump"
 
-echo ******************************************************
-echo Uploading Mongo Backup to S3
-echo ******************************************************
+# Run mongodump
+mongodump --uri=$MONGODB_URI --out=mongodump/mongodb-backups/$(date +"%F")/$FILE
+mongodump_exit_code=$?
 
-aws s3 cp /mongodump/db/$FILE s3://$S3_Bucket/mongo-backups/$(date +"%F")
+if [ $mongodump_exit_code -ne 0 ]; then
+    echo "mongodump failed with exit code $mongodump_exit_code."
+    exit $mongodump_exit_code  # Mark the script as failed
+fi
 
-sleep 5 | echo Upload-Complete
+echo "----------------------------------------------------"
+echo "Backup and upload completed successfully"
+echo "----------------------------------------------------"

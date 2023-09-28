@@ -1,0 +1,16 @@
+CHART NAME: {{ .Chart.Name }}
+CHART VERSION: {{ .Chart.Version }}
+APP VERSION: {{ .Chart.AppVersion }}
+
+    .______.                .__           
+  __| _/\_ |__   ____  ____ |  |   _____  
+ / __ |  | __ \_/ ___\/ __ \|  |  /     \ 
+/ /_/ |  | \_\ \  \__\  ___/|  |_|  Y Y  \
+\____ |  |___  /\___  >___  >____/__|_|  /
+     \/      \/     \/    \/           \/ 
+
+
+OG Team
+ 1. Ayush Tiwari
+ 2. Deepanshu Dhiman
+ 3. Manan Jain

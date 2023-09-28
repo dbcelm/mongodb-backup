@@ -1,0 +1,22 @@
+apiVersion: v2
+
+appVersion: 6.0.10
+
+dependencies:
+- condition: global.mongodb.enabled
+  name: mongodb
+  repository: https://charts.bitnami.com/bitnami
+  version: 13.18.5
+
+description: A Helm chart for MongoDB stack with Backup and Restore Solution
+kubeVersion: '>=1.25.0-0'
+
+maintainers:
+- email: dbcelm@gmail.com
+  name: Ayush Tiwari
+  url: dbcelm.github.io
+
+name: mongodb-stack
+type: application
+
+version: 1.0.0

@@ -1,0 +1,15 @@
+{{if index .Values.global "backupJob" "enabled" }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.backupJob.serviceAccount.name }}
+  {{- if .Values.global.backupJob.namespace }}
+  namespace: {{ .Values.global.backupJob.namespace }}
+  {{- else }}
+  namespace: {{ .Release.Namespace }}
+  {{- end }}
+  {{- with .Values.backupJob.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
