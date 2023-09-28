@@ -1,0 +1,1 @@
+==Your Alterigo monitoring chart is deployed!==

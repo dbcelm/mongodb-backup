@@ -1,0 +1,34 @@
+{{if index .Values.global "restoreJob" "enabled" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongodb-restore-job
+  namespace: {{ .Release.Namespace }}
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      serviceAccountName: {{ .Values.backupJob.serviceAccountName }}
+      containers:
+        - name: mongodb-restore
+          image: "{{ .Values.backupJob.image.name }}:{{ .Values.backupJob.image.tag }}"
+          imagePullPolicy: "IfNotPresent"
+          env:
+            - name: BACKUP_FILE_NAME
+              value: {{ .Values.global.restoreJob.restoreFile }}
+            - name:  MONGO_SERVICE_NAME
+              value: "{{ .Values.restoreJob.connectionString }}"               # MongoDB Service Name
+            - name:  S3_Bucket
+              value: "{{ .Values.backupJob.s3Bucket }}"                   # S3 Bucket Name
+            - name: MONGODB_USERNAME
+              value: "{{ .Values.mongodb.auth.username }}"
+            - name: MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mongodb.auth.existingSecret }}
+                  key: mongodb-passwords                                  # Replace with the actual key in your secret
+          command: ['sh', '-c',"./restore.sh"]
+          securityContext:
+            privileged: true
+      restartPolicy: Never
+{{- end }}
