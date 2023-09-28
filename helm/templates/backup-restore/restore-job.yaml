@@ -3,12 +3,16 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: mongodb-restore-job
+  {{- if .Values.global.backupJob.namespace }}
+  namespace: {{ .Values.global.backupJob.namespace }}
+  {{- else }}
   namespace: {{ .Release.Namespace }}
+  {{- end }}
 spec:
   backoffLimit: 2
   template:
     spec:
-      serviceAccountName: {{ .Values.backupJob.serviceAccountName }}
+      serviceAccountName: {{ .Values.backupJob.serviceAccount.name }}
       containers:
         - name: mongodb-restore
           image: "{{ .Values.backupJob.image.name }}:{{ .Values.backupJob.image.tag }}"

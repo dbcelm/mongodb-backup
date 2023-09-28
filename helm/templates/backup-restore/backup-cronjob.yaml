@@ -3,7 +3,11 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: mongodb-backup
+  {{- if .Values.global.backupJob.namespace }}
+  namespace: {{ .Values.global.backupJob.namespace }}
+  {{- else }}
   namespace: {{ .Release.Namespace }}
+  {{- end }}
 spec:
   schedule: {{ .Values.backupJob.schedule }} #Cron job runs every 1 hours
   startingDeadlineSeconds: 60
@@ -15,7 +19,7 @@ spec:
       backoffLimit: 2
       template:
         spec:
-          serviceAccountName: {{ .Values.backupJob.serviceAccountName }}
+          serviceAccountName: {{ .Values.backupJob.serviceAccount.name }}
           dnsPolicy: ClusterFirstWithHostNet
           containers:
             - name: mongodb-backup

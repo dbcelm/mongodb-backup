@@ -2,17 +2,14 @@ global:
   mongodb:
     enabled: true
     namespace: mongodb
-    version: 13.18.5
-  externalSecret:
-    enabled: true
-    namespace: mongodb  
+    version: 13.18.5    
   backupJob:
     enabled: true
     namespace: mongodb
   restoreJob:
     enabled: false
     namespace: mongodb
-    restoreFile: ""
+    restoreFile: ""         # path location of backup in S3 bucket
 
 
 mongodb:
@@ -46,8 +43,7 @@ mongodb:
 
   replicaCount: 3
 
-  nodeSelector:
-    nodegroup: mongodb
+  nodeSelector: {}
 
   resources:
     ## Example:
@@ -74,8 +70,7 @@ mongodb:
     annotations: {}
     labels: {}
     
-    nodeSelector:
-      nodegroup: mongodb
+    nodeSelector: {}
     
     resources:
       ## Example:
@@ -151,21 +146,17 @@ mongodb:
       rules: []
 
 
-externalSecret:
-  awsRegion: "us-east-1"
-  serviceAccountName: mongodb-eso-sa
-  awsSecretName: secret/mongo-db-creds
-
-
 backupJob:
-  schedule: '"0 */6 * * *"'
-  serviceAccountName: mongodb-backup-sa
-  mongoSvcName: "mongodb-headless.mongodb.svc.cluster.local"
+  schedule: '"0 */6 * * *"'                                     # backup schedule
+  serviceAccount:
+    name: mongodb-backup-sa
+    annotations: {}                         # service account name for backup cronjob
+  mongoSvcName: "mongodb-headless.mongodb.svc.cluster.local"    # endpoint of MongoDB headless service within cluster
   image:
-    name: "dbcelm/mongodb-backup"
+    name: "dbcelm/mongodb-backup"                               # backup job image name
     tag: "v0.0.1" 
-  s3Bucket: "s3-mongodb-backup"
+  s3Bucket: "s3-mongodb-backup"                                 # backup S3 Bucket
 
 
 restoreJob:
-  connectionString: "mongodb-0.mongodb-headless.mongodb.svc.cluster.local"
+  connectionString: "mongodb-0.mongodb-headless.mongodb.svc.cluster.local" # endpoint of MongoDB headless service with master node within cluster 
