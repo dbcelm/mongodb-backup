@@ -1,0 +1,43 @@
+name: AI Code Quality Check
+
+on:
+  push:
+    branches:
+      - '**' # Run the workflow on all branches
+
+jobs:
+  ai_check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set Up Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17' # Use the version you are comfortable with
+        distribution: 'temurin'
+
+    - name: Build and Run AI Code Analysis
+      run: |
+        mvn clean install
+        java -jar target/ai-code-checker-1.0-SNAPSHOT.jar
+    - name: Upload Analysis Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: ai-code-check-report
+        path: report.json
+
+    - name: Notify Author and Assignees
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync('./report.json', 'utf-8'));
+          const comment = report.map(r => `File: ${r.file}, Hardcoded Keys: ${r.hasHardcodedKeys}, Large Functions: ${r.hasLargeFunctions}`).join('\n');
+          github.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.payload.pull_request.number,
+            body: `AI Code Quality Report:\n${comment}`
